@@ -1,0 +1,56 @@
+import java.util.Arrays;
+
+public class Question {
+    
+    private int id;
+    private String questionn;
+    private String[] options;
+    private String answer;
+
+
+
+
+    
+    public Question(int id, String question, String[] options, String answer) {
+        this.id = id;
+        this.questionn = question;
+        this.options = options;
+        this.answer = answer;
+    }
+    
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getQuestion() {
+        return questionn;
+    }
+    public void setQuestion(String question) {
+        this.questionn = question;
+    }
+    public String[] getOptions() {
+        return options;
+    }
+    public void setOptions(String[] options) {
+        this.options = options;
+    }
+    public String getAnswer() {
+        return answer;
+    }
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
+
+    @Override
+    public String toString() {
+        return "Question [id=" + id + ", Question=" + questionn + ", options=" + Arrays.toString(options) + ", answer="
+                + answer + "]";
+    }
+
+
+
+    
+
+}
