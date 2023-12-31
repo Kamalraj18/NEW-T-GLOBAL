@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thymeleaf Navbar</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<ul class="pagination justify-content-center">
+    <li th:if="${currentPage > 0}">
+        <a th:href="@{|/showAll?page=0|}" class="page-link">&laquo; First</a>
+    </li>
+    <li th:if="${currentPage > 0}">
+        <a th:href="@{|/showAll?page=${currentPage - 1}|}" class="page-link">&lsaquo; Previous</a>
+    </li>
+    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+        th:class="${currentPage == i} ? 'page-item active' : 'page-item'">
+        <a th:href="@{|/showAll?page=${i}|}" class="page-link" th:text="${i + 1}"></a>
+    </li>
+    <li th:if="${currentPage < totalPages - 1}">
+        <a th:href="@{|/showAll?page=${currentPage + 1}|}" class="page-link">Next &rsaquo;</a>
+    </li>
+    <li th:if="${currentPage < totalPages - 1}">
+        <a th:href="@{|/showAll?page=${totalPages - 1}|}" class="page-link">Last &raquo;</a>
+    </li>
+</ul>
+
+
+</body>
+</html>
