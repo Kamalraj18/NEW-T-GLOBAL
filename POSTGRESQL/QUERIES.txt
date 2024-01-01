@@ -1,0 +1,74 @@
+--INSERT
+
+INSERT INTO TABLE() VALUES() RETURNING *;  -> IT RETURNS EVERY COLUMNS 
+INSERT INTO TABLE() VALUES() RETURNING COLUMN_NAME; -> IT RETURNS SPECIFIC COLUMN
+
+--UPDATE
+UPDATE TABLE SET COLUMN-'VALUE' WHERE CONDITION RETURNING *;
+UPDATE TABLE SET COLUMN-'VALUE' WHERE CONDITION RETURNING COLUMN_NAME;
+
+--UPSERT
+INSERT INTO TABLE VALUES() ON CONFLICT DO NOTHING;
+INSERT INTO TABLE VALUES() ON CONFLICT UPDATE TABLE SET COLUMN='VALUES';
+INSERT INTO TABLE VALUES() ON CONFLICT UPDATE TABLE SET COLUMN=EXCLUDED.COLUMN; //IF VALUE ALREADY EXIST IT WILL UPDATE WITH ITSELF OR IT WILL INSERT
+
+--ORDER BY
+SELECT COLUMNS FROM TABLE ORDER BY COLUMN_NAME; //DEFAUTLY ASCENDING ORDER
+SELECT COLUMNS FROM TABLE ORDER BY COLUMN_NAME DESC; //DESCENDING ORDER
+
+SELECT COLUMN1,COLUMN2,COLUMN3 FROM TABLE ORDER BY 1 ASC;//1 REFERS TO COLUMN1
+SELECT COLUMN1,COLUMN2,COLUMN3 FROM TABLE ORDER BY 1 ASC, 3 DESC; //1 REFERS TO COLUMN1, 3 REFERS TO COLUMN3
+
+SELECT COLUMNS FROM TABLE ORDER BY COLUMN_NAME ASC; // NULL VALUE WILL BE IN LAST
+SELECT COLUMNS FROM TABLE ORDER BY COLUMN_NAME DESC NULLS LAST; //NULL VALUES WILL COME AT LAST
+
+
+--LIMIT AND OFFSET
+
+SELECT * FROM TABLE WHERE CONDITION ORDER BY SALARY LIMIT 1 OFFSET 1; // IT RETURNS SECOND LOWEST VALUES
+
+--FETCH 
+
+SELECT * FROM TABLE WHERE CONDITION ORDER BY SALARY FETCH FIRST 5 ROWS ONLY;
+
+--LIKE AND ILIKE
+
+SELECT * FROM ACTORS where first_name ilike 'm%'; //LIKE IS CASE SENSITIVE AND ILIKE IS NOT CASE SENSETIVE
+
+
+--UUID DATATYPE 
+
+create table book(
+book_id uuid default uuid_generate_v1(),
+book_name varchar(100));
+
+insert into book(book_name) values('narnia');
+
+alter table book alter column book_id set default  uuid_generate_v4();
+
+//it generated encrypted id ("39980ad4-a8ca-11ee-a474-878a799849ce")
+
+--ARRAY DATATYPE
+
+alter table book add book_info text[];
+update book set book_info=Array['echiro oda','1999'] where book_name='One piece'
+
+--hstore
+
+alter table book add book_price hstore;
+
+select book_price -> 'paper_price',book_price->'total_price' from book;
+update book set book_price=('"paper_price"=>"1.05" ,"total_price"=>"20.25"') where book_name='One piece';
+
+--JSON
+alter table book alter column book_details type JSONB;
+update book set book_details='{"key":"value" ,"key1":"value2"}' where book_name='One piece'
+
+--network address (inet)
+
+create table table_netaddr(
+n_id serial primary key,
+ip inet);
+
+select ip,set_masklen(ip,24) from table_netaddr;
+insert into table_netaddr(ip) values('127.0.0.1'),('4.156.255.215');
