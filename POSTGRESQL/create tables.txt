@@ -1,0 +1,40 @@
+--ACTORS
+create table actors(
+actor_id serial primary key,
+first_name varchar(150),
+	last_name varchar(150) not null,
+	gender varchar(10),
+	date_of_birth date,
+	created_date date,
+	modified_date date
+);
+
+--DIRECTORS
+create table directos(
+director_id serial primary key,
+first_name varchar(150),
+	last_name varchar(150) not null,
+	date_of_birth date,
+	nationality varchar(10),
+	created_date date,
+	modified_date date
+);
+
+create table movies(
+movie_id serial primary key,
+movie_name varchar(150),
+	movie_length int,
+	movie_lang varchar(155),
+	age_certificate varchar(10),
+	release_date date,
+	director_id int references directors(director_id)
+);
+
+alter table directos rename to directors;
+
+create table movies_revenues(
+revenue_id serial primary key,
+movie_id int references movies(movie_id),
+	revenue_domestic numeric(10,2),
+	revenue_international numeric(10,2)
+);
