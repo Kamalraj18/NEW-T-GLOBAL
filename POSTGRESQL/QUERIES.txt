@@ -1,0 +1,244 @@
+--TYPE CASTING
+SYNTAX1 - CAST(EXPRESSION AS DATATYPE)
+SYNTAX2 - EXPRESSION::DATATYPE
+
+select cast('2023-june-25' as date) // "2023-06-25"
+select '2023-june-25'::date
+
+--DOMAIN
+
+SYNTAX - CREATE DOMAIN DOMAIN_NAME (DATATYPE OR EXPRESSION)
+
+create domain ip_name varchar(10);
+
+create domain age int check(value>18);
+
+--TYPE
+
+create type addr as(
+city varchar(155),
+	country varchar(100)
+)
+
+alter table table_netaddr add address addr
+insert into table_netaddr(address) values(row('london','UK'))
+
+select (address).city from table_netaddr
+
+create type currency as enum('INR','USD','EUR')
+ALTER TYPE currency ADD VALUE 'AED' AFTER 'USD' 
+
+alter table tablename add currencies currency;
+insert into table(currencies) values('AED')
+
+//new attributes in type
+
+alter type addr add attribute state varchar(155)
+
+
+---------------------------------------------------------------------------------------------
+
+select * from movies;
+
+--UPPER,LOWER,INITCAP
+SELECT UPPER(MOVIE_NAME) FROM MOVIES;
+SELECT LOWER(MOVIE_NAME) FROM MOVIES;
+SELECT INITCAP(MOVIE_NAME) FROM MOVIES;
+
+
+--LEFT,RIGHT
+SELECT LEFT(MOVIE_NAME,1) FROM MOVIES; --RETURNS ONLY FIRST VALUE
+SELECT LEFT(MOVIE_NAME,-1) FROM MOVIES; --RETURNS ALL EXCEPT LAST VALUE
+SELECT RIGHT(MOVIE_NAME,1) FROM MOVIES; --RETURNS LAST VALUE
+SELECT RIGHT(MOVIE_NAME,-1) FROM MOVIES WHERE MOVIE_ID=8; -- RETURNS ALL EXCEPT FIRST VALUE
+
+
+--REVERSE
+SELECT REVERSE(MOVIE_NAME) FROM MOVIES WHERE MOVIE_ID=5;
+
+--SPLIT_PART
+SELECT SPLIT_PART(to_char(release_date,'YYYY'),'-',1) from movies;
+
+--TRIM,LTRIM,RTRIM,BTRIM
+SELECT TRIM(LEADING FROM '     TEST');
+SELECT TRIM(TRAILING FROM 'TEST        ');
+SELECT TRIM('    TEST    ');
+
+SELECT TRIM(LEADING '0' FROM '00001256');
+SELECT LTRIM('YUMMY','Y');
+SELECT RTRIM('YUMMY','Y');
+SELECT BTRIM('YUMMY','Y');
+
+
+
+--LPAD,RPAD
+SELECT LPAD('KAMAL',10,'*');
+SELECT RPAD('KAMAL',10,'*');
+
+
+--LENGTH
+SELECT LENGTH('KAMAL');
+
+
+--POSITION
+SELECT POSITION('M' IN 'KAMAL'); -- IT RETRUNS THE FIRST OCCURANCE
+
+
+--STRPOS
+SELECT MOVIES.MOVIE_NAME,DIRECTORS.LAST_NAME FROM MOVIES INNER JOIN 
+DIRECTORS ON MOVIES.DIRECTOR_ID=DIRECTORS.DIRECTOR_ID WHERE STRPOS(DIRECTORS.LAST_NAME,'on')>0;
+
+
+--SUBSTR
+SELECT SUBSTR('KAMAL RAJ',1,5); --SUBSTR(STRING,START POSITION, LENGTH)
+
+
+--REPEAT
+SELECT REPEAT('A',5);
+
+
+--REPLACE
+SELECT REPLACE('ENTITY','E','ID')
+
+
+--GREATEST AND LEAST // it should have same common datatyped datas
+
+SELECT GREATEST[1,5,6,7,9] => 9
+SELECT LEAST[5,2,-1] => -1
+----------------------------------------------------------------------------------------------------------------------------
+
+--SEQUENCE
+
+CREATE SEQUENCE IF NOT EXISTS SEQUENCE_NAME INCREAMENT 2 MINVALUE 100 MAXVALUE 600 START WITH 200
+
+CREATE SEQUENCE IF NOT EXISTS SEQUENCE_NAME;
+SELECT nextval('SEQUENCE_NAME');
+SELECT CURRVAL('SEQUENCE_NAME');
+
+SELECT setval('SEQUENCE_NAME',VALUE);
+
+ALTER SEQUENCE SEQUENCE_NAME RESTART WITH 100;
+
+CYCLE -  returns from the start value
+create sequence test_seq1 increment 1 maxvalue 3 start with 1 cycle;
+NO CYCLE - it wont repeat 
+
+--ADD SEQUENCE IN TABLE
+
+CREATE TABLE TABLE_NAME (
+STUDENT_ID INT DEFAULT nextval('SEQUENCE_NAME) NOT NULL,
+STUDENT_NAME VARCHAR(255));
+ALTER TABLE TABLE_NAME ALTER COLUMN SEQUENCE_NAME SET DEFAULT nextval('SEQUENCE NAME')
+
+--ATTACH SEQUENCE TO A TABLE
+ALTER SEQUENCE SEQUENCE_NAME OWNED BY TABLE_NAME.COLUMN_NAME
+
+--ALPHANUMERIC USING SEQ
+
+create table test_table(
+id text not null default ('ID'||nextval('test_seq2')),
+	name varchar(255)
+);
+
+--------------------------------------------------------------------------------------------
+
+--GROUP BY 
+
+SELECT DIRECTOR_ID,COUNT(MOVIE_ID) FROM MOVIES GROUP BY DIRECTOR_ID HAVING COUNT(MOVIE_ID)>2;
+
+
+--JOINS
+
+select distinct actors.actor_id id,
+actors.first_name||' '||actors.last_name actor_name,
+directors.first_name||' '||directors.last_name director_name,
+movies.movie_name,movies_revenues.revenue_domestic,
+movies_revenues.revenue_international
+from actors INNER JOIN movies_actors on actors.actor_id=movies_actors.actor_id
+INNER JOIN movies ON movies_actors.movie_id = movies.movie_id 
+inner join movies_revenues ON movies.movie_id=movies_revenues.movie_id
+INNER JOIN directors on movies.director_id=directors.director_id where revenue_domestic is not null and revenue_international is not null;
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+--UNION
+SELECT COL1,COL2 FROM TABLE1
+UNION
+SELECT COL1,COL2 FROM TABLE2
+//IT RETURN DISTINCT VALUES FROM BOTH TABLE
+
+
+SELECT COL1,COL2 FROM TABLE1
+UNION ALL
+SELECT COL1,COL2 FROM TABLE2
+//IT RETURNS ALL VALUES INCLUDING DUPLICATE
+
+
+SELECT COL1,COL2 FROM TABLE
+UNION
+SELECT NULL AS COL1,COL3 FROM TABLE2
+
+
+SELECT COL1,COL2 FROM TABLE
+INTERSECT
+SELECT COL1,COL2 FROM TABLE2
+//IT RETURN ONLY SAME VALUES WHICH MATCHES BOTH TABLE
+
+
+
+SELECT COL1,COL2 FROM TABLE1
+EXCEPT
+SELECT COL1,COL2 FROM TABLE2
+//IT RETURNS DATA FROM THE FIRST TABLE THAT DOES NOT MATCHES THE SECOND TABLE
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+--INDEX
+
+CREATE INDEX INDEX_NAME ON TABLE_NAME(COLUMNS);
+DEFAULT INDEX TYPE IS BTREE INDEX -> used for operator and pk indexes and LIKE operator indexes.
+
+CREATE INDEX INDEX_NAME ON TABLE_NAME USING HASH(COLUMNS);
+HASH INDEX ->used mostly for equal operators but high cost than btree
+
+SELECT pg_size_pretty(pg_total_relation_size('actors')); => check size of the table
+
+
+----------------------------------------------------------------------------------------------------------------------------
+
+--VIEW
+
+create view if not exists vw_all_details as
+select distinct actors.actor_id id,
+actors.first_name||' '||actors.last_name actor_name,
+directors.first_name||' '||directors.last_name director_name,
+movies.movie_name,movies_revenues.revenue_domestic,
+movies_revenues.revenue_international
+from actors INNER JOIN movies_actors on actors.actor_id=movies_actors.actor_id
+INNER JOIN movies ON movies_actors.movie_id = movies.movie_id 
+inner join movies_revenues ON movies.movie_id=movies_revenues.movie_id
+INNER JOIN directors on movies.director_id=directors.director_id where revenue_domestic is not null and revenue_international is not null;
+
+select * from vw_all_details;
+
+--MATERIALIZED VIEW
+
+create materialized view if not exists vw_all_details as
+select distinct actors.actor_id id,
+actors.first_name||' '||actors.last_name actor_name,
+directors.first_name||' '||directors.last_name director_name,
+movies.movie_name,movies_revenues.revenue_domestic,
+movies_revenues.revenue_international
+from actors INNER JOIN movies_actors on actors.actor_id=movies_actors.actor_id
+INNER JOIN movies ON movies_actors.movie_id = movies.movie_id 
+inner join movies_revenues ON movies.movie_id=movies_revenues.movie_id
+INNER JOIN directors on movies.director_id=directors.director_id where revenue_domestic is not null and revenue_international is not null WITH no data;
+
+with no data -> no data is populated unless it was refreshed.
+refresh materialized view view_name;
+
+
+
