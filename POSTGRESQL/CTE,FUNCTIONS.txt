@@ -1,0 +1,65 @@
+--COMMON TABLE EXPRESSION
+
+with cte_movies_revenue as
+(
+	select d.director_id,
+	d.first_name,
+	sum(r.revenue_domestic + r.revenue_international) as revenue
+	FROM
+	directors d INNER JOIN movies mv ON d.director_id = mv.director_id
+	INNER JOIN movies_revenues r ON mv.director_id = r.movie_id
+	group by d.director_id order by d.director_id
+	)
+	select * from cte_movies_revenue where revenue is not null
+	
+
+
+with cte_delete as(
+delete from test_table where id='ID1' returning *
+)
+insert into test_table1 select * from cte_delete
+
+
+-----------------------------------------------------------------------------------
+
+--ROLLUP
+
+select 
+mv.movie_lang,
+sum(r.revenue_domestic+r.revenue_international) as total
+from 
+movies mv INNER JOIN movies_revenues r on mv.movie_id=r.movie_id
+group by rollup(mv.movie_lang)
+order by mv.movie_lang
+
+
+------------------------------------------------------------------------------------------------
+
+
+--REGEX
+
+~ - match regex,but case sensitive
+~* - match regex,but incase sensitive
+!~ - not match regex,but case sensitive
+!~* - not match regex,but incase sensitive
+
+select 'kamal raj 18' similar to '%18|20%'
+select 'kamal raj 18' similar to '%r%'
+
+select substring('kamal 12 raj 18' from '\d{2}.+')
+select regexp_matches('kamal 12 raj 18','[^a-z][0-9]{2}','g')
+
+
+--------------------------------------------------------------------------------------------------------------
+
+--TSVECTOR AND TSQUERY
+
+select to_tsvector('the brown one is the fox and yellow striped one is the tiger') 
+@@ to_tsquery('fox & (!lion|tiger) & !zebra')
+
+
+
+C:\Program Files\PostgreSQL\16\bin>psql -U postgres -d learning -h localhost -p 5432
+[learning=# \copy docs_presidents(president,title,speech_date,speech_text) FROM 'C:\Users\kamal\Downloads\president_speeches.csv' WITH (FORMAT CSV,DELIMITER '|', HEADER OFF,QUOTE '@');]
+
+
