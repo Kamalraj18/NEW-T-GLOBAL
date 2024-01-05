@@ -1,0 +1,130 @@
+declare
+v_text employees.job_id%TYPE;
+BEGIN
+v_text := 'kamal'
+dbms_output.put_line(v_text);
+END;
+
+------------------------------------------------------
+
+--bind variable
+set autoprint on;
+/
+variable var_text varchar2(30);
+/
+variable var_number NUMBER;
+/
+variable var_date DATE;
+/
+declare
+v_text varchar2(30);
+begin
+:var_text := 'Hello SQL';
+:var_number := 20;
+v_text := :var_text;
+--dbms_output.put_line(v_text);
+--dbms_output.put_line(:var_text);
+end;
+/
+print var_text;
+/
+variable var_sql number;
+/
+begin 
+  :var_sql := 100;
+end;
+/
+select * from employees where employee_id = :var_sql;
+
+
+----------------------------------------------------------------------------------
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 2;
+case 
+when v_data=1 then v_temp:=1;
+when v_data=2 then v_temp:=2;
+when v_data=3 then v_temp:=3;
+end case;
+dbms_output.put_line(v_temp);
+end;
+
+----------------------------------------------------
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 5;
+if v_data = 2 then dbms_output.put_line('first');
+elsif v_data = 3 then dbms_output.put_line('second');
+else
+dbms_output.put_line('final');
+end if;
+end;
+
+------------------------------------------------------------
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 1;
+loop
+dbms_output.put_line('final '|| v_data);
+v_data:=v_data+1;
+exit when v_data>5;
+end loop;
+end;
+
+-----------------------------------------------------------
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 1;
+for i in 1..5 loop
+dbms_output.put_line('final '|| i);
+end loop;
+end;
+
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 1;
+for i in reverse 1..5 loop
+dbms_output.put_line('final '|| i);
+end loop;
+end;
+
+-------------------------------------------------------------
+
+declare
+v_data number;
+v_temp number;
+begin
+v_data := 1;
+while v_data<5 loop
+dbms_output.put_line('final '|| v_data);
+v_data:=v_data+1;
+end loop;
+end;
+
+imp: variable must be declared
+
+-------------------------------------------------------------------
+
+declare
+v_data hr.employees.first_name%TYPE;
+v_temp number;
+begin
+select first_name,salary into v_data,v_temp from hr.employees where employee_id=100;
+
+dbms_output.put_line(v_data || ' '||v_temp);
+end;
