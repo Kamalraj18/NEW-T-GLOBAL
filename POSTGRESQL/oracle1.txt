@@ -1,0 +1,200 @@
+declare
+r_data hr.employees%rowtype;
+begin
+    select * into r_data from hr.employees where employee_id=100;
+dbms_output.put_line(r_data.first_name|| ' ' ||r_data.last_name|| ' ' ||r_data.email|| ' ' ||r_data.phone_number);
+end;
+
+------------------------------------------------------------------------------------
+
+DECLARE
+    r_emp temp%rowtype;
+BEGIN
+    SELECT * 
+    INTO   r_emp 
+    FROM   temp 
+    WHERE  employee_id = 104;
+    
+    r_emp.salary         := 0;
+    r_emp.commission_pct := 0;
+    
+    INSERT INTO temp VALUES r_emp;
+END;
+
+------------------------------------------------------------------------------------------
+
+DECLARE
+  TYPE e_list IS TABLE OF VARCHAR2(50);
+  emps e_list;
+BEGIN
+  emps := e_list('Alex','Bruce','John');
+  emps.extend;
+  emps(4) := 'Bob';
+  FOR i IN 1..emps.count() LOOP
+    dbms_output.put_line(emps(i));
+  END LOOP;
+END;
+
+--------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE TYPE t_phone_number AS OBJECT(p_type   VARCHAR2(10), 
+                                                p_number VARCHAR2(50)
+                                               );
+/
+CREATE OR REPLACE TYPE v_phone_numbers AS VARRAY(3) OF t_phone_number;
+/
+CREATE TABLE emps_with_phones(employee_id  NUMBER,
+                              first_name   VARCHAR2(50),
+                              last_name    VARCHAR2(50),
+                              phone_number v_phone_numbers);
+
+
+--------------------------------------------------------------------------------------------
+
+create or replace trigger before_statement_emp_cpy 
+before insert or update on employees_copy 
+begin
+  dbms_output.put_line('Before Statement Trigger is Fired!.');
+end;
+----------------- after statement level trigger example
+create or replace trigger after_statement_emp_cpy 
+after insert or update on employees_copy 
+begin
+  dbms_output.put_line('After Statement Trigger is Fired!.');
+end;
+----------------- before row level trigger example
+create or replace trigger before_row_emp_cpy 
+before insert or update on employees_copy 
+for each row
+begin
+  dbms_output.put_line('Before Row Trigger is Fired!.');
+end;
+----------------- after row level trigger example
+create or replace trigger after_row_emp_cpy 
+after insert or update on employees_copy 
+for each row
+begin
+  dbms_output.put_line('After Row Trigger is Fired!.');
+end;
+----------------- sql queries used in this lecture
+update employees_copy set salary = salary + 100 where employee_id = 100;
+update employees_copy set salary = salary + 100 where employee_id = 99;
+update employees_copy set salary = salary + 100
+where department_id = 30;
+
+
+------------------------------------------------------------------------------------
+
+--NEW AND OLD
+
+create or replace trigger before_row_emp_cpy 
+before insert or update or delete on employees_copy 
+referencing old as O new as N
+for each row
+begin
+  dbms_output.put_line('Before Row Trigger is Fired!.');
+  dbms_output.put_line('The Salary of Employee '||:o.employee_id
+    ||' -> Before:'|| :o.salary||' After:'||:n.salary);
+
+----------------------------------------------------------------------------------------
+create or replace trigger before_row_emp_cpy 
+before insert or update or delete on employees_copy 
+referencing old as O new as N
+for each row
+begin
+  dbms_output.put_line('Before Row Trigger is Fired!.');
+  dbms_output.put_line('The Salary of Employee '||:o.employee_id
+    ||' -> Before:'|| :o.salary||' After:'||:n.salary);
+  if inserting then
+    dbms_output.put_line('An INSERT occurred on employees_copy table');
+  elsif deleting then
+    dbms_output.put_line('A DELETE occurred on employees_copy table');
+  elsif updating ('salary') then
+    dbms_output.put_line('A DELETE occurred on the salary column');
+  elsif updating then
+    dbms_output.put_line('An UPDATE occurred on employees_copy table');
+  end if;
+end;
+
+
+-----------------------------------------------------------------------------
+
+create or replace trigger prevent_high_salary
+before insert or update of salary on employees_copy 
+for each row
+when (new.salary > 50000)
+begin
+  raise_application_error(-20006,'A salary cannot be higher than 50000!.');
+end;
+end;
+
+-------------------------------------------------------------------------------------
+
+--EXCEPTION
+
+declare
+  v_name varchar2(6);
+begin
+  select first_name into v_name from employees where employee_id = 50;
+  dbms_output.put_line('Hello');
+exception
+  when no_data_found then
+    dbms_output.put_line('There is no employee with the selected id');
+end;
+
+
+
+--USER DEFINED EXCEPTION WITH RAISE
+
+declare
+too_high_salary exception;
+v_salary_check pls_integer;
+begin
+  select salary into v_salary_check from employees where employee_id = 100;
+  if v_salary_check > 20000 then
+    raise too_high_salary;
+  end if;
+  dbms_output.put_line('The salary is in an acceptable range');
+exception
+  when too_high_salary then
+  dbms_output.put_line('This salary is too high. You need to decrease it.');
+end;
+------------------------------------------------------------------------------------------------
+
+--PACKAGE
+
+CREATE OR REPLACE 
+PACKAGE EMP AS 
+  v_salary_increase_rate number := 0.057; 
+  cursor cur_emps is select * from employees;
+  
+  procedure increase_salaries;
+  function get_avg_sal(p_dept_id int) return number;
+END EMP;
+
+
+--PACKAGE BODY
+
+CREATE OR REPLACE
+PACKAGE BODY EMP AS
+  procedure increase_salaries AS
+  BEGIN
+    for r1 in cur_emps loop
+      update employees_copy set salary = salary + salary * v_salary_increase_rate;
+    end loop;
+  END increase_salaries;
+  function get_avg_sal(p_dept_id int) return number AS
+  v_avg_sal number := 0;
+  BEGIN
+    select avg(salary) into v_avg_sal from employees_copy where
+          department_id = p_dept_id;
+    RETURN v_avg_sal;
+  END get_avg_sal;
+END EMP;
+
+exec EMP_PKG.increase_salaries;
+
+begin
+  dbms_output.put_line(emp_pkg.get_avg_sal(50));
+  dbms_output.put_line(emp_pkg.v_salary_increase_rate);
+end;
