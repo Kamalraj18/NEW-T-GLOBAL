@@ -1,0 +1,3 @@
+complete python course
+pull repo from git
+push to git
