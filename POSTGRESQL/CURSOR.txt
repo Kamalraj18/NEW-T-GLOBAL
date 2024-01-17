@@ -1,0 +1,24 @@
+DO $$ 
+DECLARE
+    r_id movies_revenues.revenue_id%TYPE;
+    domestic movies_revenues.revenue_domestic%TYPE;
+    international movies_revenues.revenue_international%TYPE;
+    total movies_revenues.total_revenues%TYPE;
+
+    mv_cursor CURSOR FOR
+        SELECT revenue_id, revenue_domestic, revenue_international
+        FROM movies_revenues
+        FOR UPDATE;
+    
+BEGIN
+    OPEN mv_cursor;
+    LOOP
+        FETCH mv_cursor INTO r_id, domestic, international;
+        EXIT WHEN NOT FOUND; 
+        
+        total := COALESCE(domestic, 0) + COALESCE(international, 0);
+        UPDATE movies_revenues SET total_revenues = total WHERE revenue_id = r_id;
+    END LOOP;
+    CLOSE mv_cursor;
+    COMMIT;
+END $$;

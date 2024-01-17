@@ -1,0 +1,265 @@
+--STORED PROCEDURE
+
+create table department(
+	d_id serial primary key,
+	d_name varchar(150)
+)
+
+create table employee(
+e_id serial primary key,
+	e_name varchar(150),
+	e_location varchar(150),
+	d_id int references department(d_id)
+)
+
+select * from department;
+
+create or replace procedure sp_emp_dtls(
+e_name varchar,
+	e_location varchar(50),
+	dp_name varchar(50)
+)
+language plpgsql
+AS $$
+declare 
+dept_id int;
+BEGIN
+select d_id into dept_id from department where d_name=dp_name;
+
+if(dept_id is null) then
+insert into department(d_name) values (dp_name) returning d_id into dept_id;
+insert into employee(e_name,e_location,d_id) values (e_name,e_location,dept_id);
+else
+insert into employee(e_name,e_location,d_id) values (e_name,e_location,dept_id);
+end if;
+END;
+$$;
+
+call sp_emp_dtls('test','chennai','HR')
+
+----------------------------------------------------------------------------------------------------------------------
+
+--CALL FUNCTION FROM PROCEDURE
+
+create or replace procedure sp_emp_dtls(
+e_name varchar,
+	e_location varchar(50),
+	dp_name varchar(50),
+	e_salary int,
+	b_salary int
+)
+language plpgsql
+AS $$
+declare 
+dept_id int;
+total_amount int;
+BEGIN
+select d_id into dept_id from department where d_name=dp_name;
+select fn_cal_salary(e_salary,b_salary) into total_amount;
+if(dept_id is null) then
+insert into department(d_name) values (dp_name) returning d_id into dept_id;
+insert into employee(e_name,e_location,d_id,emp_salary,bonus_salary,total_salary) values (e_name,e_location,dept_id,e_salary,b_salary,total_amount);
+else
+insert into employee(e_name,e_location,d_id,emp_salary,bonus_salary,total_salary) values (e_name,e_location,dept_id,e_salary,b_salary,total_amount);
+end if;
+END;
+$$;
+
+
+---------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE Table1 (
+    id serial primary key,
+    name varchar(255),
+    value integer
+);
+
+CREATE TABLE Table2 (
+    id serial primary key,
+    name varchar(255),
+    value integer
+);
+
+CREATE OR REPLACE PROCEDURE insert_data_from_table1_to_table2()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    rec Table1%ROWTYPE;
+    cursor_table1 CURSOR FOR SELECT * FROM Table1;
+BEGIN
+    OPEN cursor_table1;
+    LOOP
+        FETCH cursor_table1 INTO rec;
+        EXIT WHEN NOT FOUND;
+
+        INSERT INTO Table2(name, value) VALUES (rec.name, rec.mark);
+    END LOOP;
+
+    CLOSE cursor_table1;
+END;
+$$;
+
+select * from table2;
+
+insert into table1(name,mark) values('kamal',200),('aravind',201),('kishore',150),('dinesh',200),('ranjith',190)
+
+call insert_data_from_table1_to_table2()
+/
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+--ORACLE
+
+create table department(
+	d_id varchar2(50) primary key,
+	d_name varchar(150)
+)
+
+drop table department;
+
+create table employee(
+e_id varchar2(50) primary key,
+	e_name varchar(150),
+	e_location varchar(150),
+	d_id varchar2(50) references department(d_id)
+)
+
+create or replace procedure sp_emp_dtls(
+e_name varchar,
+e_location varchar,
+dp_name varchar
+)
+as
+dept_id VARCHAR2(30);
+begin 
+select d_id into dept_id from department where d_name=dp_name;
+
+if(dept_id is null) then
+insert into department(d_name) values (dp_name) returning d_id into dept_id;
+
+insert into employee(e_name,e_location,d_id) values (e_name,e_location,dept_id);
+
+else
+insert into employee(e_name,e_location,d_id) values (e_name,e_location,dept_id);
+end if;
+
+end;
+
+/
+
+CREATE SEQUENCE employee_sequence start with 1 increment by 1 maxvalue 9999 nocache;
+
+
+create or replace trigger trg_serial_employee 
+before insert on employee
+for each row
+begin
+select 'EMP'||to_char(employee_sequence.nextval,'FM0000')
+into :NEW.e_id from dual;
+end;
+/
+
+CREATE SEQUENCE department_sequence start with 1 increment by 1 maxvalue 20 nocache;
+
+
+create or replace trigger trg_serial_department
+before insert on department
+for each row
+begin
+select 'DEPT'||to_char(department_sequence.nextval,'FM00')
+into :NEW.d_id from dual;
+end;
+/
+
+
+begin sp_emp_dtls('kamal','vellore','developer'); end;
+
+select * from department;
+
+insert into department(d_name) values ('FINANCE');
+
+alter table department modify (d_id varchar(50));
+/
+
+
+create or replace procedure sp_emp_dtls(
+e_name varchar2,
+e_location varchar2,
+dp_name varchar2
+)
+as
+dept_id int;
+begin 
+
+select d_id into dept_id from department where d_name=dp_name;
+
+EXCEPTION
+when NO_DATA_FOUND then
+insert into department(d_name) values (dp_name) returning d_id into dept_id;
+END;
+
+insert into employee(e_name,e_location,d_id) values (e_name,e_location,dept_id);
+
+end;
+/
+
+declare
+e_n varchar(50) := 'kamal';
+e_l varchar(50) := 'vellore';
+d_n varchar(50) := 'HR';
+begin
+sp_emp_dtls(e_n,e_l,d_n);
+end;
+
+----------------------------------------------------------------------------------------------------
+
+
+create or replace procedure sp_insert_details(
+	actor_fname varchar(150),
+	actor_lname varchar(150),
+	a_gender varchar(150),
+	m_name varchar(150),
+	m_length integer,
+	m_lang varchar(150),
+	d_fname varchar(150),
+	d_lname varchar(150)
+	)
+	language plpgsql
+	as $$
+	declare
+	a_id integer;
+	d_id integer;
+	d_id_temp integer;
+	m_id integer;
+	
+	BEGIN
+	
+	select director_id into d_id from directors where first_name=d_fname and last_name=l_name;
+	
+	if(d_id is null) then 
+	
+	insert into directors(first_name,last_name,date_of_birth,nationality,created_date)
+	values(d_fname,d_lname,'1985-10-10','British',now()) returning director_id into d_id_temp;
+	
+	INSERT INTO actors(first_name,last_name,gender,date_of_birth,created_date)
+	values (actor_fname,actor_lname,a_gender,'1992-11-26',now()) returning actor_id into a_id;
+	
+	INSERT INTO movies(movie_name,movie_length,movie_lang,age_certificate,release_date,director_id)
+	values (m_name,m_length,m_lang,'18','2024-11-11',d_id_temp) returning movie_id into m_id;
+	
+	insert into movies_actors(actor_id,movie_id) values(a_id,m_id);
+	
+	else
+	
+	INSERT INTO actors(first_name,last_name,gender,date_of_birth,created_date)
+	values (actor_fname,actor_lname,a_gender,'1992-11-26',now()) returning actor_id into a_id;
+	
+	INSERT INTO movies(movie_name,movie_length,movie_lang,age_certificate,release_date,director_id)
+	values (m_name,m_length,m_lang,'18','2024-11-11',d_id) returning movie_id into m_id;
+	
+	insert into movies_actors(actor_id,movie_id) values(a_id,m_id);
+	
+	end if;
+	end;
+	$$;

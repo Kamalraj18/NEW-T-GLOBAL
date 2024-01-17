@@ -1,0 +1,54 @@
+create or replace function fn_update_order_date()
+returns trigger AS 
+$$
+BEGIN
+New.order_date := now();
+return new;
+END;
+$$ LANGUAGE PLPGSQL;
+
+create or replace trigger trg_update_orders_date
+BEFORE insert on orders
+for each row
+execute function fn_update_order_date();
+
+insert into orders(order_name) values('laptop')
+
+select * from orders;
+
+------------------------------------------------------------------------------------------------
+
+
+select * from employee;
+
+-- Assuming there is a sequence named employee_sequence
+-- You need to create it before creating the trigger
+CREATE SEQUENCE employee_sequence;
+
+-- Create a trigger function
+CREATE OR REPLACE FUNCTION trg_serial_employee()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.e_id = 'EMP' || LPAD(nextval('employee_sequence')::TEXT, 4, '0');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the trigger
+CREATE TRIGGER trg_serial_employee
+BEFORE INSERT ON employee
+FOR EACH ROW
+EXECUTE FUNCTION trg_serial_employee();
+
+call sp_emp_details('tester','arni','HR',15000,6000);
+
+alter table employee add column e_id serial;
+
+insert into employee(e_name,e_location,d_id,emp_salary,bonus_salary)
+values ('tester','arni',1,15000,6000)
+
+delete from employee where e_id=3
+alter table employee drop column e_id;
+
+DROP TRIGGER trg_serial_employee ON employee;
+drop function trg_serial_employee;
