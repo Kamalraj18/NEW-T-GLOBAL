@@ -50,3 +50,21 @@ alter table employee drop column e_id;
 
 DROP TRIGGER trg_serial_employee ON employee;
 drop function trg_serial_employee;
+
+-----------------------------------------------------------------
+CREATE OR REPLACE FUNCTION before_row_emp_()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE NOTICE 'Before Row Trigger is Fired!';
+  RAISE NOTICE 'The Salary of Employee % -> Before: % After: %',
+               OLD.e_id, OLD.emp_salary, NEW.emp_salary;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER before_row_emp_
+BEFORE INSERT OR UPDATE OR DELETE ON employee
+FOR EACH ROW
+EXECUTE FUNCTION before_row_emp_();
+
+call sp_emp_details('elango','trichy','HR',25000,6000);
