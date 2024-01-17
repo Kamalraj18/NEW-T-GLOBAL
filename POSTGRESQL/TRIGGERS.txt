@@ -21,8 +21,6 @@ select * from orders;
 
 select * from employee;
 
--- Assuming there is a sequence named employee_sequence
--- You need to create it before creating the trigger
 CREATE SEQUENCE employee_sequence;
 
 -- Create a trigger function
